@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>指挥中心</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03060f;
+  --bg2: #080d1a;
+  --bg3: #0d1525;
+  --border: rgba(0,210,255,0.15);
+  --accent: #00d2ff;
+  --accent2: #ff6b35;
+  --accent3: #39ff14;
+  --accent4: #bf5fff;
+  --text: #e0f0ff;
+  --muted: #4a6080;
+  --danger: #ff3860;
+  --gold: #ffd700;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid scan line effect */
+body::before {
+  content:'';
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,210,255,0.015) 2px, rgba(0,210,255,0.015) 4px);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 20px;
+  background: rgba(8,13,26,0.95);
+  border-bottom: 1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:100;
+  backdrop-filter: blur(20px);
+}
+
+.logo {
+  font-family:'Orbitron',monospace;
+  font-weight:900;
+  font-size:16px;
+  color:var(--accent);
+  letter-spacing:3px;
+  text-shadow: 0 0 20px rgba(0,210,255,0.5);
+}
+
+.logo span { color: var(--accent2); }
+
+.clock-wrap {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#clock {
+  font-family:'Orbitron',monospace;
+  font-size:22px;
+  font-weight:700;
+  color:var(--accent);
+  text-shadow: 0 0 15px rgba(0,210,255,0.6);
+  letter-spacing:2px;
+}
+
+#date-display {
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:2px;
+  margin-top:2px;
+}
+
+.status-dot {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:var(--accent3);
+}
+
+.dot {
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--accent3);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity:1; box-shadow: 0 0 6px var(--accent3); }
+  50% { opacity:0.4; box-shadow: none; }
+}
+
+/* ===== NAV TABS ===== */
+.nav {
+  display:flex;
+  gap:2px;
+  padding:0 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+
+.nav::-webkit-scrollbar { display:none; }
+
+.nav-tab {
+  padding:10px 16px;
+  font-size:12px;
+  font-weight:500;
+  color:var(--muted);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;
+  transition: all 0.2s;
+  letter-spacing:0.5px;
+}
+
+.nav-tab:hover { color:var(--text); }
+.nav-tab.active {
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+}
+
+/* ===== PAGES ===== */
+.page { display:none; padding:16px; }
+.page.active { display:block; }
+
+/* ===== SUMMARY CARDS ===== */
+.summary-grid {
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+  margin-bottom:16px;
+}
+
+@media(max-width:768px) {
+  .summary-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+.scard {
+  background: var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:14px;
+  position:relative;
+  overflow:hidden;
+}
+
+.scard::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:2px;
+  background: var(--card-color, var(--accent));
+}
+
+.scard-label {
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+.scard-value {
+  font-family:'Orbitron',monospace;
+  font-size:22px;
+  font-weight:700;
+  color: var(--card-color, var(--accent));
+}
+
+.scard-sub {
+  font-size:10px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.scard-up { color:var(--accent3); }
+.scard-dn { color:var(--danger); }
+
+/* ===== PLATFORM GRID ===== */
+.platform-grid {
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:10px;
+  margin-bottom:16px;
+}
+
+@media(min-width:900px) {
+  .platform-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.pcard {
+  background: var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+  cursor:pointer;
+  transition: all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+
+.pcard:hover {
+  border-color:var(--card-color, var(--accent));
+  transform:translateY(-2px);
+  box-shadow:0 4px 20px rgba(0,210,255,0.1);
+}
+
+.pcard-header {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.pcard-icon {
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  background: var(--card-color, var(--accent));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  opacity:0.9;
+}
+
+.pcard-name {
+  font-size:13px;
+  font-weight:700;
+  color:var(--text);
+}
+
+.pcard-status {
+  font-size:10px;
+  margin-top:1px;
+}
+
+.pcard-metrics {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:6px;
+}
+
+.metric {
+  background: rgba(0,0,0,0.3);
+  border-radius:6px;
+  padding:6px 8px;
+}
+
+.metric-label {
+  font-size:9px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+
+.metric-value {
+  font-family:'Orbitron',monospace;
+  font-size:13px;
+  font-weight:700;
+  margin-top:2px;
+}
+
+/* ===== ROBOTS ===== */
+.robot-list {
+  display:grid;
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.robot-row {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.robot-dot {
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+.robot-dot.on { background:var(--accent3); box-shadow:0 0 8px var(--accent3); animation:pulse 2s infinite; }
+.robot-dot.off { background:var(--muted); }
+.robot-dot.err { background:var(--danger); box-shadow:0 0 8px var(--danger); animation:pulse 0.8s infinite; }
+
+.robot-info { flex:1; }
+.robot-name { font-size:13px; font-weight:600; }
+.robot-task { font-size:11px; color:var(--muted); margin-top:2px; }
+
+.robot-last {
+  font-size:10px;
+  color:var(--muted);
+  text-align:right;
+  flex-shrink:0;
+}
+
+.robot-btn {
+  background: rgba(0,210,255,0.1);
+  border:1px solid var(--accent);
+  color:var(--accent);
+  padding:4px 10px;
+  border-radius:4px;
+  font-size:10px;
+  cursor:pointer;
+  letter-spacing:1px;
+  transition:all 0.2s;
+}
+
+.robot-btn:hover { background:rgba(0,210,255,0.2); }
+.robot-btn.stop { border-color:var(--danger); color:var(--danger); background:rgba(255,56,96,0.1); }
+
+/* ===== CHAT ===== */
+.chat-wrap {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  height:420px;
+}
+
+.chat-header {
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--accent);
+}
+
+.chat-messages {
+  flex:1;
+  overflow-y:auto;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  scrollbar-width:thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.msg {
+  max-width:85%;
+  padding:10px 14px;
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.msg.ai {
+  align-self:flex-start;
+  background:rgba(0,210,255,0.08);
+  border:1px solid rgba(0,210,255,0.15);
+  border-radius:2px 10px 10px 10px;
+}
+
+.msg.user {
+  align-self:flex-end;
+  background:rgba(255,107,53,0.12);
+  border:1px solid rgba(255,107,53,0.2);
+  border-radius:10px 2px 10px 10px;
+  color:var(--text);
+}
+
+.msg-time {
+  font-size:9px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.chat-input-wrap {
+  padding:12px;
+  border-top:1px solid var(--border);
+  display:flex;
+  gap:8px;
+}
+
+.chat-input {
+  flex:1;
+  background:rgba(0,0,0,0.4);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:10px 14px;
+  color:var(--text);
+  font-size:13px;
+  font-family:'Noto Sans SC',sans-serif;
+  outline:none;
+  transition:border 0.2s;
+}
+
+.chat-input:focus { border-color:var(--accent); }
+
+.chat-send {
+  background:var(--accent);
+  color:var(--bg);
+  border:none;
+  border-radius:6px;
+  padding:10px 18px;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+
+.chat-send:hover { filter:brightness(1.2); }
+
+/* ===== SECTION TITLES ===== */
+.sec-title {
+  font-size:11px;
+  letter-spacing:3px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.sec-title::after {
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+}
+
+/* ===== PLATFORM DETAIL PAGES ===== */
+.detail-grid {
+  display:grid;
+  grid-template-columns: repeat(2,1fr);
+  gap:10px;
+  margin-bottom:16px;
+}
+
+@media(min-width:700px) {
+  .detail-grid { grid-template-columns: repeat(4,1fr); }
+}
+
+.big-stat {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:16px;
+  text-align:center;
+}
+
+.big-stat-value {
+  font-family:'Orbitron',monospace;
+  font-size:26px;
+  font-weight:900;
+  color:var(--accent);
+  margin-bottom:4px;
+}
+
+.big-stat-label {
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:1.5px;
+}
+
+.table-wrap {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  margin-bottom:16px;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+
+th {
+  background:rgba(0,210,255,0.07);
+  padding:10px 14px;
+  text-align:left;
+  color:var(--muted);
+  font-weight:500;
+  letter-spacing:1px;
+  font-size:10px;
+  text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+}
+
+td {
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  color:var(--text);
+}
+
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,0.02); }
+
+.badge {
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:4px;
+  font-size:10px;
+  font-weight:600;
+}
+
+.badge-green { background:rgba(57,255,20,0.15); color:var(--accent3); }
+.badge-orange { background:rgba(255,107,53,0.15); color:var(--accent2); }
+.badge-red { background:rgba(255,56,96,0.15); color:var(--danger); }
+.badge-blue { background:rgba(0,210,255,0.15); color:var(--accent); }
+.badge-purple { background:rgba(191,95,255,0.15); color:var(--accent4); }
+
+/* ===== PROGRESS BAR ===== */
+.progress-row {
+  margin-bottom:12px;
+}
+
+.progress-label {
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:5px;
+}
+
+.progress-bar {
+  height:6px;
+  background:rgba(255,255,255,0.05);
+  border-radius:3px;
+  overflow:hidden;
+}
+
+.progress-fill {
+  height:100%;
+  border-radius:3px;
+  background:var(--fill-color, var(--accent));
+  transition:width 1s ease;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.page.active { animation:fadeIn 0.25s ease; }
+
+.glow-accent { text-shadow: 0 0 10px var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">CTRL<span>HQ</span></div>
+  <div class="clock-wrap">
+    <div id="clock">00:00:00</div>
+    <div id="date-display">LOADING...</div>
+  </div>
+  <div class="status-dot">
+    <div class="dot"></div>
+    <span>7机器人在线</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-tab active" onclick="showPage('home')">🏠 总览</div>
+  <div class="nav-tab" onclick="showPage('amazon')">📦 亚马逊</div>
+  <div class="nav-tab" onclick="showPage('tiktok')">🎵 TikTok</div>
+  <div class="nav-tab" onclick="showPage('xiaohongshu')">📕 小红书</div>
+  <div class="nav-tab" onclick="showPage('standalone')">🌐 独立站</div>
+  <div class="nav-tab" onclick="showPage('supply')">🏭 1688货源</div>
+  <div class="nav-tab" onclick="showPage('robots')">🤖 机器人</div>
+  <div class="nav-tab" onclick="showPage('chat')">💬 对话</div>
+</div>
+
+<!-- ===================== HOME ===================== -->
+<div class="page active" id="page-home">
+
+  <!-- 4 TOP STATS -->
+  <div class="summary-grid">
+    <div class="scard" style="--card-color:#00d2ff">
+      <div class="scard-label">今日总收入</div>
+      <div class="scard-value" id="total-revenue">$0</div>
+      <div class="scard-sub scard-up">↑ 实时累计</div>
+    </div>
+    <div class="scard" style="--card-color:#39ff14">
+      <div class="scard-label">今日净利润</div>
+      <div class="scard-value" id="total-profit">$0</div>
+      <div class="scard-sub scard-up">↑ 扣除所有成本</div>
+    </div>
+    <div class="scard" style="--card-color:#ff6b35">
+      <div class="scard-label">今日订单总数</div>
+      <div class="scard-value" id="total-orders">0</div>
+      <div class="scard-sub">全平台合计</div>
+    </div>
+    <div class="scard" style="--card-color:#ff3860">
+      <div class="scard-label">今日退货率</div>
+      <div class="scard-value" id="return-rate">0%</div>
+      <div class="scard-sub scard-dn">需保持 &lt;5%</div>
+    </div>
+  </div>
+
+  <!-- 8 PLATFORMS -->
+  <div class="sec-title">平台概览</div>
+  <div class="platform-grid" id="platform-grid">
+
+    <div class="pcard" style="--card-color:#FF9900" onclick="showPage('amazon')">
+      <div class="pcard-header">
+        <div class="pcard-icon">📦</div>
+        <div>
+          <div class="pcard-name">亚马逊</div>
+          <div class="pcard-status" style="color:var(--accent3)">● 运行中</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">今日销售</div>
+          <div class="metric-value" style="color:#FF9900">$1,240</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">订单数</div>
+          <div class="metric-value" style="color:#FF9900">38</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">流量</div>
+          <div class="metric-value" style="color:#FF9900">2,104</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">退货</div>
+          <div class="metric-value" style="color:var(--accent3)">2</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcard" style="--card-color:#ff0050" onclick="showPage('tiktok')">
+      <div class="pcard-header">
+        <div class="pcard-icon">🎵</div>
+        <div>
+          <div class="pcard-name">TikTok</div>
+          <div class="pcard-status" style="color:var(--accent3)">● 发布中</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">今日播放</div>
+          <div class="metric-value" style="color:#ff0050">12.4K</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">新增粉丝</div>
+          <div class="metric-value" style="color:#ff0050">+84</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">带货收入</div>
+          <div class="metric-value" style="color:#ff0050">$320</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">发布视频</div>
+          <div class="metric-value" style="color:var(--accent3)">3</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcard" style="--card-color:#ff2442" onclick="showPage('xiaohongshu')">
+      <div class="pcard-header">
+        <div class="pcard-icon">📕</div>
+        <div>
+          <div class="pcard-name">小红书</div>
+          <div class="pcard-status" style="color:var(--accent3)">● 运行中</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">笔记阅读</div>
+          <div class="metric-value" style="color:#ff2442">8,320</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">新增粉丝</div>
+          <div class="metric-value" style="color:#ff2442">+51</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">带货佣金</div>
+          <div class="metric-value" style="color:#ff2442">¥480</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">发布笔记</div>
+          <div class="metric-value" style="color:var(--accent3)">5</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcard" style="--card-color:#bf5fff" onclick="showPage('standalone')">
+      <div class="pcard-header">
+        <div class="pcard-icon">🌐</div>
+        <div>
+          <div class="pcard-name">独立站</div>
+          <div class="pcard-status" style="color:var(--accent3)">● 在线</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">今日销售</div>
+          <div class="metric-value" style="color:#bf5fff">$680</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">访客</div>
+          <div class="metric-value" style="color:#bf5fff">1,203</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">转化率</div>
+          <div class="metric-value" style="color:#bf5fff">3.2%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">订单</div>
+          <div class="metric-value" style="color:var(--accent3)">21</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcard" style="--card-color:#f37021" onclick="showPage('supply')">
+      <div class="pcard-header">
+        <div class="pcard-icon">🏭</div>
+        <div>
+          <div class="pcard-name">1688货源</div>
+          <div class="pcard-status" style="color:var(--accent3)">● 监控中</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">今日采购</div>
+          <div class="metric-value" style="color:#f37021">¥2,140</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">供应商</div>
+          <div class="metric-value" style="color:#f37021">12</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">在途订单</div>
+          <div class="metric-value" style="color:#f37021">24</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">节省成本</div>
+          <div class="metric-value" style="color:var(--accent3)">31%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcard" style="--card-color:#00d2ff">
+      <div class="pcard-header">
+        <div class="pcard-icon">🛒</div>
+        <div>
+          <div class="pcard-name">速卖通</div>
+          <div class="pcard-status" style="color:var(--muted)">○ 待开启</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">状态</div>
+          <div class="metric-value" style="color:var(--muted);font-size:10px">准备中</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">预计启动</div>
+          <div class="metric-value" style="color:var(--muted);font-size:10px">下周</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">货源已对接</div>
+          <div class="metric-value" style="color:var(--accent3)">✓</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">账号</div>
+          <div class="metric-value" style="color:var(--muted);font-size:10px">注册中</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcard" style="--card-color:#07c160">
+      <div class="pcard-header">
+        <div class="pcard-icon">💚</div>
+        <div>
+          <div class="pcard-name">微信电商</div>
+          <div class="pcard-status" style="color:var(--muted)">○ 待开启</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">微信群</div>
+          <div class="metric-value" style="color:var(--muted);font-size:10px">搭建中</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">私域粉丝</div>
+          <div class="metric-value" style="color:#07c160">0</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">自动回复</div>
+          <div class="metric-value" style="color:var(--accent3)">✓ 就绪</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">小程序</div>
+          <div class="metric-value" style="color:var(--muted);font-size:10px">开发中</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcard" style="--card-color:#ffd700">
+      <div class="pcard-header">
+        <div class="pcard-icon">📊</div>
+        <div>
+          <div class="pcard-name">成本中心</div>
+          <div class="pcard-status" style="color:var(--accent3)">● 实时</div>
+        </div>
+      </div>
+      <div class="pcard-metrics">
+        <div class="metric">
+          <div class="metric-label">今日拿货成本</div>
+          <div class="metric-value" style="color:#ffd700">¥1,840</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">物流成本</div>
+          <div class="metric-value" style="color:#ffd700">$180</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">综合毛利</div>
+          <div class="metric-value" style="color:var(--accent3)">38%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">平台佣金</div>
+          <div class="metric-value" style="color:#ffd700">$124</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROBOTS MINI -->
+  <div class="sec-title">机器人状态</div>
+  <div class="robot-list">
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">选品机器人</div>
+        <div class="robot-task">正在扫描亚马逊畅销榜 — 已发现 3 个潜力产品</div>
+      </div>
+      <div class="robot-last">刚刚更新</div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">订单机器人</div>
+        <div class="robot-task">今日处理 38 单 — 全部已自动下单供应商</div>
+      </div>
+      <div class="robot-last">2分钟前</div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">客服机器人</div>
+        <div class="robot-task">今日回复 14 条消息 — 自动处理率 93%</div>
+      </div>
+      <div class="robot-last">5分钟前</div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">自媒体机器人</div>
+        <div class="robot-task">今日发布 TikTok×3 小红书×5 — 总播放 20.7K</div>
+      </div>
+      <div class="robot-last">11分钟前</div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">货源机器人</div>
+        <div class="robot-task">监控 12 家供应商 — 发现 2 个更低价格</div>
+      </div>
+      <div class="robot-last">18分钟前</div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">数据机器人</div>
+        <div class="robot-task">今日报表已生成 — 利润率 38%</div>
+      </div>
+      <div class="robot-last">08:00</div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">监控机器人</div>
+        <div class="robot-task">账号健康 — 所有指标正常 ✓</div>
+      </div>
+      <div class="robot-last">持续监控</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== AMAZON ===================== -->
+<div class="page" id="page-amazon">
+  <div class="sec-title">亚马逊 — 今日数据</div>
+  <div class="detail-grid">
+    <div class="big-stat"><div class="big-stat-value" style="color:#FF9900">$1,240</div><div class="big-stat-label">销售额</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:var(--accent3)">$471</div><div class="big-stat-label">净利润</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#FF9900">38</div><div class="big-stat-label">订单数</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:var(--danger)">2</div><div class="big-stat-label">退货</div></div>
+  </div>
+  <div class="sec-title">今日订单明细</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>产品</th><th>售价</th><th>成本</th><th>利润</th><th>状态</th></tr>
+      <tr><td>无线蓝牙耳机 Pro</td><td>$29.99</td><td>$8.40</td><td>$13.20</td><td><span class="badge badge-green">已发货</span></td></tr>
+      <tr><td>USB-C 充电线 3合1</td><td>$15.99</td><td>$3.20</td><td>$6.80</td><td><span class="badge badge-green">已发货</span></td></tr>
+      <tr><td>手机支架 车载</td><td>$18.99</td><td>$4.50</td><td>$7.90</td><td><span class="badge badge-blue">处理中</span></td></tr>
+      <tr><td>硅胶保护壳 iPhone</td><td>$12.99</td><td>$2.10</td><td>$5.40</td><td><span class="badge badge-orange">待发货</span></td></tr>
+      <tr><td>便携式迷你风扇</td><td>$22.99</td><td>$6.80</td><td>$9.20</td><td><span class="badge badge-red">退货申请</span></td></tr>
+    </table>
+  </div>
+  <div class="sec-title">账号健康</div>
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;">
+    <div class="progress-row">
+      <div class="progress-label"><span>订单缺陷率</span><span style="color:var(--accent3)">0.2% / 1%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="--fill-color:var(--accent3);width:20%"></div></div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-label"><span>延迟发货率</span><span style="color:var(--accent3)">0.8% / 4%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="--fill-color:var(--accent3);width:20%"></div></div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-label"><span>取消率</span><span style="color:var(--accent3)">0.5% / 2.5%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="--fill-color:var(--accent3);width:20%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TIKTOK ===================== -->
+<div class="page" id="page-tiktok">
+  <div class="sec-title">TikTok — 今日数据</div>
+  <div class="detail-grid">
+    <div class="big-stat"><div class="big-stat-value" style="color:#ff0050">12.4K</div><div class="big-stat-label">播放量</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:var(--accent3)">+84</div><div class="big-stat-label">新粉丝</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#ff0050">$320</div><div class="big-stat-label">带货收入</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#ff0050">3</div><div class="big-stat-label">发布视频</div></div>
+  </div>
+  <div class="sec-title">今日发布内容</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>内容</th><th>类型</th><th>播放</th><th>点赞</th><th>带货</th></tr>
+      <tr><td>蓝牙耳机开箱测评</td><td><span class="badge badge-red">带货</span></td><td>6,240</td><td>384</td><td>$180</td></tr>
+      <tr><td>充电线对比测试</td><td><span class="badge badge-blue">评测</span></td><td>3,810</td><td>201</td><td>$94</td></tr>
+      <tr><td>手机配件推荐合集</td><td><span class="badge badge-purple">种草</span></td><td>2,350</td><td>156</td><td>$46</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== XIAOHONGSHU ===================== -->
+<div class="page" id="page-xiaohongshu">
+  <div class="sec-title">小红书 — 今日数据</div>
+  <div class="detail-grid">
+    <div class="big-stat"><div class="big-stat-value" style="color:#ff2442">8,320</div><div class="big-stat-label">笔记阅读</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:var(--accent3)">+51</div><div class="big-stat-label">新粉丝</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#ff2442">¥480</div><div class="big-stat-label">佣金收入</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#ff2442">5</div><div class="big-stat-label">发布笔记</div></div>
+  </div>
+  <div class="sec-title">今日笔记表现</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>标题</th><th>阅读</th><th>点赞</th><th>收藏</th><th>转化</th></tr>
+      <tr><td>这款耳机真的绝了！</td><td>3,240</td><td>284</td><td>196</td><td><span class="badge badge-green">高</span></td></tr>
+      <tr><td>数码配件好物分享</td><td>2,180</td><td>156</td><td>124</td><td><span class="badge badge-blue">中</span></td></tr>
+      <tr><td>学生党必备清单</td><td>1,640</td><td>98</td><td>87</td><td><span class="badge badge-orange">低</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== STANDALONE ===================== -->
+<div class="page" id="page-standalone">
+  <div class="sec-title">独立站 — 今日数据</div>
+  <div class="detail-grid">
+    <div class="big-stat"><div class="big-stat-value" style="color:#bf5fff">$680</div><div class="big-stat-label">销售额</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:var(--accent3)">3.2%</div><div class="big-stat-label">转化率</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#bf5fff">1,203</div><div class="big-stat-label">访客</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#bf5fff">21</div><div class="big-stat-label">订单</div></div>
+  </div>
+  <div class="sec-title">流量来源</div>
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;">
+    <div class="progress-row">
+      <div class="progress-label"><span>TikTok引流</span><span style="color:#bf5fff">42%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="--fill-color:#bf5fff;width:42%"></div></div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-label"><span>小红书引流</span><span style="color:#ff2442">28%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="--fill-color:#ff2442;width:28%"></div></div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-label"><span>Google搜索</span><span style="color:var(--accent)">18%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="--fill-color:var(--accent);width:18%"></div></div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-label"><span>直接访问</span><span style="color:var(--muted)">12%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="--fill-color:var(--muted);width:12%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SUPPLY ===================== -->
+<div class="page" id="page-supply">
+  <div class="sec-title">1688货源 — 今日数据</div>
+  <div class="detail-grid">
+    <div class="big-stat"><div class="big-stat-value" style="color:#f37021">¥2,140</div><div class="big-stat-label">今日采购额</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:var(--accent3)">31%</div><div class="big-stat-label">节省成本</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#f37021">12</div><div class="big-stat-label">活跃供应商</div></div>
+    <div class="big-stat"><div class="big-stat-value" style="color:#f37021">24</div><div class="big-stat-label">在途订单</div></div>
+  </div>
+  <div class="sec-title">主力供应商</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>供应商</th><th>品类</th><th>今日采购</th><th>平均发货</th><th>评级</th></tr>
+      <tr><td>深圳数码科技</td><td>耳机/数码</td><td>¥840</td><td>24h</td><td><span class="badge badge-green">⭐⭐⭐⭐⭐</span></td></tr>
+      <tr><td>义乌小商品城</td><td>配件/周边</td><td>¥620</td><td>36h</td><td><span class="badge badge-blue">⭐⭐⭐⭐</span></td></tr>
+      <tr><td>广州数码批发</td><td>手机壳</td><td>¥480</td><td>48h</td><td><span class="badge badge-blue">⭐⭐⭐⭐</span></td></tr>
+      <tr><td>东莞电子厂直供</td><td>充电类</td><td>¥200</td><td>24h</td><td><span class="badge badge-green">⭐⭐⭐⭐⭐</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== ROBOTS ===================== -->
+<div class="page" id="page-robots">
+  <div class="sec-title">机器人控制台</div>
+  <div class="robot-list">
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">🔍 选品机器人</div>
+        <div class="robot-task">正在扫描亚马逊畅销榜 — 已发现 3 个潜力产品 — 下次运行 14:00</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="robot-btn" onclick="triggerRobot(this,'选品')">立即运行</button>
+        <button class="robot-btn stop">停止</button>
+      </div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">📦 订单机器人</div>
+        <div class="robot-task">今日处理 38 单 — 全部已自动下单 — 实时监控中</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="robot-btn" onclick="triggerRobot(this,'订单')">立即运行</button>
+        <button class="robot-btn stop">停止</button>
+      </div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">💬 客服机器人</div>
+        <div class="robot-task">今日回复 14 条 — 自动处理率 93% — 1 条待人工处理</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="robot-btn" onclick="triggerRobot(this,'客服')">查看队列</button>
+        <button class="robot-btn stop">停止</button>
+      </div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">📱 自媒体机器人</div>
+        <div class="robot-task">今日发布 TikTok×3 小红书×5 — 总播放 20.7K</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="robot-btn" onclick="triggerRobot(this,'自媒体')">立即发布</button>
+        <button class="robot-btn stop">停止</button>
+      </div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">🏭 货源机器人</div>
+        <div class="robot-task">监控 12 家供应商 — 发现 2 个更低价格 — 已自动更新</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="robot-btn" onclick="triggerRobot(this,'货源')">立即扫描</button>
+        <button class="robot-btn stop">停止</button>
+      </div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">📊 数据机器人</div>
+        <div class="robot-task">今日报表已生成 — 利润率 38% — 下次 明天08:00</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="robot-btn" onclick="triggerRobot(this,'数据')">生成报表</button>
+        <button class="robot-btn stop">停止</button>
+      </div>
+    </div>
+    <div class="robot-row">
+      <div class="robot-dot on"></div>
+      <div class="robot-info">
+        <div class="robot-name">🛡️ 监控机器人</div>
+        <div class="robot-task">账号健康 ✓ — 安全扫描 ✓ — 异常检测 ✓ — 全部正常</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="robot-btn" onclick="triggerRobot(this,'监控')">查看报告</button>
+        <button class="robot-btn stop">停止</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CHAT ===================== -->
+<div class="page" id="page-chat">
+  <div class="sec-title">与 Claude 对话</div>
+  <div class="chat-wrap">
+    <div class="chat-header">
+      <div class="dot" style="background:var(--accent);box-shadow:0 0 6px var(--accent)"></div>
+      Claude AI — 你的商业大脑
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg ai">
+        你好！我是你的商业AI助手。今天的数据已经汇总好了——亚马逊今日收入 $1,240，利润率 38%，7个机器人全部正常运行。有什么需要我帮你分析或处理的吗？
+        <div class="msg-time">系统启动</div>
+      </div>
+    </div>
+    <div class="chat-input-wrap">
+      <input class="chat-input" id="chat-input" placeholder="输入指令或问题..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="chat-send" onclick="sendMsg()">发送</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CLOCK =====
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  
+  const days = ['日','一','二','三','四','五','六'];
+  const y = now.getFullYear();
+  const mo = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  document.getElementById('date-display').textContent = `${y}.${mo}.${d} 星期${days[now.getDay()]}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== NAV =====
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== LIVE COUNTERS =====
+let revenue = 1240, profit = 471, orders = 38;
+setInterval(() => {
+  revenue += Math.floor(Math.random()*8);
+  profit += Math.floor(Math.random()*3);
+  if(Math.random()>0.85) orders++;
+  document.getElementById('total-revenue').textContent = '$'+revenue.toLocaleString();
+  document.getElementById('total-profit').textContent = '$'+profit.toLocaleString();
+  document.getElementById('total-orders').textContent = orders;
+  document.getElementById('return-rate').textContent = '2.3%';
+}, 4000);
+
+// ===== ROBOT TRIGGER =====
+function triggerRobot(btn, name) {
+  const orig = btn.textContent;
+  btn.textContent = '运行中...';
+  btn.style.color = 'var(--accent3)';
+  btn.style.borderColor = 'var(--accent3)';
+  setTimeout(() => {
+    btn.textContent = '✓ 完成';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  }, 1500);
+  addMsg('ai', `${name}机器人已触发，正在执行任务...`);
+  showPage('chat');
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    if(t.textContent.includes('对话')) t.classList.add('active');
+    else t.classList.remove('active');
+  });
+}
+
+// ===== CHAT =====
+const aiReplies = [
+  '收到！正在处理，稍后给你反馈结果。',
+  '数据已分析完毕，今日利润率38%，建议继续加大选品机器人的扫描频率。',
+  '亚马逊账号健康状态良好，所有指标都在安全范围内。',
+  '已检测到2个更低价格的货源，机器人已自动更新成本数据，利润提升了约3%。',
+  '今日TikTok引流效果不错，转化率比昨天提升了0.4%，建议继续这个内容策略。',
+  '选品机器人发现了一个新潜力产品，月销量预估800+，竞品评论仅240条，利润率约35%，要不要上架？',
+  '机器人全部正常运行中，今天预计总收入可以达到$1,800+。',
+];
+
+function addMsg(role, text) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  const now = new Date();
+  div.innerHTML = text + `<div class="msg-time">${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  addMsg('user', text);
+  input.value = '';
+  setTimeout(() => {
+    addMsg('ai', aiReplies[Math.floor(Math.random()*aiReplies.length)]);
+  }, 800);
+}
+</script>
+</body>
+</html>
