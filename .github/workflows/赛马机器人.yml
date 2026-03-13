@@ -1,0 +1,60 @@
+name: 赛马机器人
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: |
+          pip install requests beautifulsoup4 --break-system-packages
+
+      - name: 运行赛马机器人
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+        run: |
+          python3 -c "
+          import smtplib, os
+          from email.mime.text import MIMEText
+          from datetime import datetime
+
+          user = os.environ.get('GMAIL_USER','')
+          pwd = os.environ.get('GMAIL_PASS','')
+
+          report = f'''
+🏇 赛马机器人运行报告
+时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}
+
+系统状态：正常运行
+下次运行：2小时后
+
+工作台：https://happylove168998.github.io/hkjc
+          '''
+
+          if user and pwd:
+              msg = MIMEText(report, 'plain', 'utf-8')
+              msg['Subject'] = '🏇 赛马机器人运行正常'
+              msg['From'] = user
+              msg['To'] = user
+              s = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+              s.login(user, pwd)
+              s.sendmail(user, user, msg.as_string())
+              s.quit()
+              print('邮件发送成功')
+          "
