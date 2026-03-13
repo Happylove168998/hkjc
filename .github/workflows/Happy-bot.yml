@@ -1,0 +1,129 @@
+name: 🤖 Happy-bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: '输入任务'
+        required: true
+  schedule:
+    - cron: '0 * * * *'
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  happy-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 安装依赖
+        run: pip install requests --break-system-packages
+
+      - name: 执行任务
+        env:
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+          TASK_INPUT: ${{ github.event.inputs.task }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 << 'PYEOF'
+          import requests, os, json, smtplib, subprocess
+          from email.mime.text import MIMEText
+          from datetime import datetime
+
+          api_key = os.environ.get('CLAUDE_API_KEY', '')
+          gmail_user = os.environ.get('GMAIL_USER', '')
+          gmail_pass = os.environ.get('GMAIL_PASS', '')
+          task = os.environ.get('TASK_INPUT', '自动检查并部署网站')
+
+          # 如果没有手动任务，执行默认自动任务
+          if not task:
+              task = '检查网站是否正常，自动部署最新文件到gh-pages，确认index.html存在'
+
+          print(f'[Happy-bot] 执行任务: {task}')
+
+          # 调用Claude API
+          result = '任务完成'
+          if api_key:
+              try:
+                  resp = requests.post(
+                      'https://api.anthropic.com/v1/messages',
+                      headers={
+                          'x-api-key': api_key,
+                          'anthropic-version': '2023-06-01',
+                          'content-type': 'application/json'
+                      },
+                      json={
+                          'model': 'claude-sonnet-4-20250514',
+                          'max_tokens': 1000,
+                          'messages': [{
+                              'role': 'user',
+                              'content': f'任务：{task}\n请简短回复执行结果或建议，不超过200字。'
+                          }]
+                      },
+                      timeout=30
+                  )
+                  data = resp.json()
+                  result = data.get('content', [{}])[0].get('text', '已完成')
+                  print(f'[Claude回复] {result}')
+              except Exception as e:
+                  result = f'Claude API调用失败: {e}'
+                  print(result)
+
+          # 自动部署网站
+          try:
+              os.makedirs('_site', exist_ok=True)
+              for f in ['工作台.html', '索引.html', 'index.html']:
+                  if os.path.exists(f):
+                      import shutil
+                      shutil.copy(f, '_site/index.html')
+                      print(f'[部署] 复制 {f} 到 _site/index.html')
+                      break
+          except Exception as e:
+              print(f'部署准备失败: {e}')
+
+          # 发邮件通知
+          if gmail_user and gmail_pass:
+              try:
+                  content = f'''
+          🤖 Happy-bot 运行报告
+
+          时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}
+          任务：{task}
+
+          结果：
+          {result}
+
+          工作台地址：
+          https://happylove168998.github.io/hkjc
+          '''
+                  msg = MIMEText(content, 'plain', 'utf-8')
+                  msg['Subject'] = '🤖 Happy-bot 任务完成'
+                  msg['From'] = gmail_user
+                  msg['To'] = gmail_user
+                  s = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                  s.login(gmail_user, gmail_pass)
+                  s.sendmail(gmail_user, gmail_user, msg.as_string())
+                  s.quit()
+                  print('[邮件] 通知已发送')
+              except Exception as e:
+                  print(f'邮件发送失败: {e}')
+
+          PYEOF
+
+      - name: 部署到gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          force_orphan: true
