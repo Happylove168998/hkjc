@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI 控制台</title>
+
+<style>
+
+body{
+background:#0b0f1a;
+color:#00d2ff;
+font-family:monospace;
+text-align:center;
+padding:40px;
+}
+
+h1{
+font-size:40px;
+margin-bottom:30px;
+}
+
+button{
+background:#00d2ff;
+border:none;
+padding:15px 30px;
+margin:10px;
+font-size:18px;
+border-radius:8px;
+cursor:pointer;
+}
+
+button:hover{
+background:#0090aa;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>AI-BOY OS 控制台</h1>
+
+<button>启动AI</button>
+
+<button>任务中心</button>
+
+<button>数据中心</button>
+
+<button>系统状态</button>
+
+</body>
+
+</html>
