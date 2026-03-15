@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI-BOY OS Ultimate</title>
+<title>AI-BOY OS</title>
 
 <style>
 
@@ -36,66 +36,43 @@ cursor:pointer;
 }
 
 button:hover{
-background:#06b6d4;
+background:#0ea5e9;
 }
 
 #chatbox{
 width:90%;
-height:260px;
-background:#0f172a;
-margin:15px auto;
-border-radius:12px;
-padding:15px;
+max-width:700px;
+height:320px;
+background:#111827;
+margin:auto;
 overflow:auto;
+padding:15px;
+border-radius:10px;
 text-align:left;
 }
 
-#console{
-width:90%;
-height:120px;
-background:black;
-margin:auto;
-border-radius:10px;
-padding:10px;
-font-size:12px;
-overflow:auto;
-color:#22c55e;
-}
-
-#status{
-width:90%;
-background:#0f172a;
-margin:10px auto;
-border-radius:10px;
-padding:15px;
-display:none;
-}
-
 input{
-width:65%;
+width:70%;
 padding:10px;
 border-radius:8px;
 border:none;
+margin-top:10px;
 }
-
-.ai{color:#38bdf8;}
-.user{color:#22c55e;}
-.sys{color:#facc15;}
 
 </style>
 </head>
 
 <body>
 
-<header>AI-BOY OS ULTIMATE</header>
+<header>
+AI-BOY OS Ultimate
+</header>
 
 <div class="panel">
 
+<button onclick="systemStatus()">系统状态</button>
+<button onclick="scanSecurity()">安全扫描</button>
 <button onclick="startAI()">启动AI</button>
-<button onclick="chat()">AI聊天</button>
-<button onclick="tasks()">任务中心</button>
-<button onclick="system()">系统监控</button>
-<button onclick="data()">数据中心</button>
 
 </div>
 
@@ -103,140 +80,49 @@ border:none;
 
 <div>
 
-<input id="msg" placeholder="输入消息">
-
+<input id="userInput" placeholder="输入命令或聊天">
 <button onclick="send()">发送</button>
 
 </div>
 
-<div id="status"></div>
-
-<div id="console"></div>
-
 <script>
 
-function log(t){
-
-let c=document.getElementById("console")
-
-c.innerHTML+=t+"<br>"
-
-c.scrollTop=c.scrollHeight
-
+function add(text){
+let box=document.getElementById("chatbox");
+box.innerHTML+=text+"<br>";
+box.scrollTop=box.scrollHeight;
 }
 
-function add(t,type){
+function systemStatus(){
+add("AI-BOY: 系统运行正常");
+}
 
-let box=document.getElementById("chatbox")
-
-box.innerHTML+=`<p class="${type}">${t}</p>`
-
-box.scrollTop=box.scrollHeight
-
+function scanSecurity(){
+add("AI-BOY: 正在扫描安全...");
+setTimeout(()=>{add("AI-BOY: 未发现漏洞");},1500);
 }
 
 function startAI(){
-
-add("系统：AI核心已启动","sys")
-
-log("AI CORE STARTED")
-
-}
-
-function chat(){
-
-add("AI：你好，我是 AI-BOY","ai")
-
-log("CHAT MODULE LOADED")
-
-}
-
-function tasks(){
-
-add("系统：任务系统启动","sys")
-
-add("系统：当前任务 0","sys")
-
-log("TASK CENTER ONLINE")
-
-}
-
-function system(){
-
-let s=document.getElementById("status")
-
-s.style.display="block"
-
-let cpu=Math.floor(Math.random()*50)+20
-
-let mem=Math.floor(Math.random()*50)+30
-
-let net=Math.floor(Math.random()*100)
-
-s.innerHTML=`
-
-<h3>系统监控</h3>
-
-CPU 使用率 ${cpu}%<br>
-内存使用率 ${mem}%<br>
-网络状态 ${net} ms<br>
-AI 状态 运行中
-
-`
-
-add("系统：监控模块加载","sys")
-
-log("SYSTEM MONITOR ONLINE")
-
-}
-
-function data(){
-
-add("系统：数据中心启动","sys")
-
-log("DATA CENTER READY")
-
+add("AI-BOY: AI模块已启动");
 }
 
 function send(){
 
-let msg=document.getElementById("msg").value
+let input=document.getElementById("userInput").value;
 
-if(msg=="")return
+add("你: "+input);
 
-add("你："+msg,"user")
+let reply="AI-BOY: 我理解你的命令";
 
-document.getElementById("msg").value=""
-
-add("AI：思考中...","ai")
+if(input.includes("你好")) reply="AI-BOY: 你好，我已在线";
+if(input.includes("状态")) reply="AI-BOY: 系统一切正常";
+if(input.includes("安全")) reply="AI-BOY: 安全级别：最高";
 
 setTimeout(()=>{
+add(reply);
+},500);
 
-let r=[
-
-"数据已分析",
-
-"这个问题很有价值",
-
-"AI正在学习你的输入",
-
-"逻辑处理完成",
-
-"AI理解你的问题",
-
-"建议继续输入更多信息",
-
-"系统正在推理"
-
-]
-
-let a=r[Math.floor(Math.random()*r.length)]
-
-add("AI："+a,"ai")
-
-log("AI RESPONSE GENERATED")
-
-},900)
+document.getElementById("userInput").value="";
 
 }
 
