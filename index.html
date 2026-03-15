@@ -2,52 +2,114 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI 控制台</title>
+<title>AI-BOY OS</title>
 
 <style>
-
 body{
-background:#0b0f1a;
-color:#00d2ff;
-font-family:monospace;
+background:#020617;
+color:white;
+font-family:Arial;
 text-align:center;
-padding:40px;
 }
 
 h1{
-font-size:40px;
-margin-bottom:30px;
+margin-top:80px;
+color:#22d3ee;
+}
+
+.container{
+margin-top:50px;
 }
 
 button{
-background:#00d2ff;
+background:#22d3ee;
 border:none;
 padding:15px 30px;
 margin:10px;
 font-size:18px;
-border-radius:8px;
+border-radius:10px;
 cursor:pointer;
 }
 
 button:hover{
-background:#0090aa;
+background:#0ea5b7;
+}
+
+#chatbox{
+width:80%;
+height:300px;
+background:#0f172a;
+margin:20px auto;
+border-radius:10px;
+padding:10px;
+overflow:auto;
+text-align:left;
+}
+
+input{
+width:60%;
+padding:10px;
+border-radius:8px;
+border:none;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <h1>AI-BOY OS 控制台</h1>
 
-<button>启动AI</button>
+<div class="container">
 
-<button>任务中心</button>
+<button onclick="startAI()">启动AI</button>
+<button onclick="openChat()">AI聊天</button>
+<button onclick="tasks()">任务中心</button>
+<button onclick="system()">系统状态</button>
 
-<button>数据中心</button>
+</div>
 
-<button>系统状态</button>
+<div id="chatbox"></div>
+
+<div>
+
+<input id="msg" placeholder="输入消息">
+<button onclick="send()">发送</button>
+
+</div>
+
+<script>
+
+function startAI(){
+alert("AI系统启动成功")
+}
+
+function tasks(){
+alert("任务中心加载中")
+}
+
+function system(){
+alert("系统运行正常")
+}
+
+function openChat(){
+document.getElementById("chatbox").innerHTML+="<p>AI: 你好，我是AI-BOY</p>"
+}
+
+function send(){
+
+let msg=document.getElementById("msg").value
+
+document.getElementById("chatbox").innerHTML+="<p>你: "+msg+"</p>"
+
+document.getElementById("chatbox").innerHTML+="<p>AI: 我收到你的消息了</p>"
+
+document.getElementById("msg").value=""
+
+}
+
+</script>
 
 </body>
-
 </html>
