@@ -324,3 +324,25 @@ echo "║   🌐 远程仓库 : https://github.com/Happylove168998/hkjc ║"
 echo "║   🌿 分支     : main                                 ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo ""
+cat > /root/setup-aiboy-os.sh << 'SCRIPT'
+#!/bin/bash
+set -e
+cd /root/hkjc
+find . -mindepth 1 -not -path './.git' -not -path './.git/*' -delete
+mkdir -p frontend/pages backend/routes ai-engine data-engine crawler automation dashboard
+echo "# AI-BOY OS" > README.md
+touch frontend/pages/dashboard.tsx frontend/pages/data-center.tsx
+touch backend/main.py backend/routes/__init__.py
+touch ai-engine/.gitkeep data-engine/.gitkeep crawler/.gitkeep automation/.gitkeep dashboard/.gitkeep
+git init
+git config user.name "Happy-boy"
+git config user.email "happylove168998@users.noreply.github.com"
+git remote remove origin 2>/dev/null || true
+git remote add origin "https://github.com/Happylove168998/hkjc.git"
+git add .
+git commit -m "Initialize AI-BOY OS and clean old repository"
+git branch -M main
+git push -u origin main --force
+SCRIPT
+chmod +x /root/setup-aiboy-os.sh
+./setup-aiboy-os.sh
