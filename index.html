@@ -2,27 +2,26 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI-BOY OS</title>
+<title>AI-BOY OS Ultimate</title>
 
 <style>
 
 body{
 background:#020617;
-color:white;
+color:#22d3ee;
 font-family:Arial;
 margin:0;
 text-align:center;
 }
 
 header{
-font-size:30px;
+font-size:32px;
 padding:25px;
-color:#22d3ee;
 letter-spacing:2px;
 }
 
 .panel{
-margin:10px;
+margin:15px;
 }
 
 button{
@@ -36,27 +35,30 @@ cursor:pointer;
 }
 
 button:hover{
-background:#0ea5e9;
+background:#0891b2;
+color:white;
 }
 
 #chatbox{
 width:90%;
-max-width:700px;
-height:320px;
-background:#111827;
+height:260px;
 margin:auto;
-overflow:auto;
-padding:15px;
+background:#0f172a;
 border-radius:10px;
-text-align:left;
+padding:10px;
+overflow:auto;
+color:#22d3ee;
 }
 
 input{
-width:70%;
+width:75%;
 padding:10px;
-border-radius:8px;
+border-radius:6px;
 border:none;
-margin-top:10px;
+}
+
+.send{
+padding:10px 15px;
 }
 
 </style>
@@ -64,65 +66,64 @@ margin-top:10px;
 
 <body>
 
-<header>
-AI-BOY OS Ultimate
-</header>
+<header>AI-BOY OS Control Center</header>
 
 <div class="panel">
 
-<button onclick="systemStatus()">系统状态</button>
-<button onclick="scanSecurity()">安全扫描</button>
+<button onclick="status()">系统状态</button>
+<button onclick="scan()">安全扫描</button>
 <button onclick="startAI()">启动AI</button>
 
 </div>
 
 <div id="chatbox"></div>
 
-<div>
+<br>
 
-<input id="userInput" placeholder="输入命令或聊天">
-<button onclick="send()">发送</button>
-
-</div>
+<input id="msg" placeholder="输入命令或聊天">
+<button class="send" onclick="send()">发送</button>
 
 <script>
 
-function add(text){
-let box=document.getElementById("chatbox");
-box.innerHTML+=text+"<br>";
-box.scrollTop=box.scrollHeight;
+function status(){
+add("AI-BOY：系统运行正常");
 }
 
-function systemStatus(){
-add("AI-BOY: 系统运行正常");
-}
-
-function scanSecurity(){
-add("AI-BOY: 正在扫描安全...");
-setTimeout(()=>{add("AI-BOY: 未发现漏洞");},1500);
+function scan(){
+add("AI-BOY：安全扫描完成，未发现漏洞");
 }
 
 function startAI(){
-add("AI-BOY: AI模块已启动");
+add("AI-BOY：AI模块已启动");
 }
 
 function send(){
 
-let input=document.getElementById("userInput").value;
+var msg=document.getElementById("msg").value;
 
-add("你: "+input);
+if(msg==""){
+return;
+}
 
-let reply="AI-BOY: 我理解你的命令";
+add("你："+msg);
 
-if(input.includes("你好")) reply="AI-BOY: 你好，我已在线";
-if(input.includes("状态")) reply="AI-BOY: 系统一切正常";
-if(input.includes("安全")) reply="AI-BOY: 安全级别：最高";
+setTimeout(function(){
 
-setTimeout(()=>{
-add(reply);
-},500);
+add("AI-BOY：正在处理 "+msg);
 
-document.getElementById("userInput").value="";
+},800);
+
+document.getElementById("msg").value="";
+
+}
+
+function add(text){
+
+var box=document.getElementById("chatbox");
+
+box.innerHTML+=text+"<br>";
+
+box.scrollTop=box.scrollHeight;
 
 }
 
